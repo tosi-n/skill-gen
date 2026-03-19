@@ -1,12 +1,34 @@
 ---
 name: skill-gen
 description: AI-powered skill generator that uses browser-use to research tools, libraries, and APIs from the web, then synthesizes high-quality Claude Code skills. Use when the user wants to create a new skill, generate a skill from a URL or topic, auto-research documentation, or evolve an existing skill. Triggers include "generate a skill", "create skill for X", "research and build a skill", "skill from this repo", or any request to automate skill creation.
-allowed-tools: Bash(python:*), Bash(uv:*), Bash(pip:*), Bash(browser-use:*)
+allowed-tools: Bash(skill-gen:*), Bash(python:*), Bash(uv:*), Bash(pip:*), Bash(browser-use:*)
 ---
 
 # skill-gen
 
 Autonomous skill generator that crawls the web using browser-use, extracts structured knowledge about tools and libraries, and synthesizes production-ready Claude Code skills.
+
+## Installation
+
+```bash
+# Install via pip (from GitHub)
+pip install git+https://github.com/tosi-n/skill-gen.git
+
+# Or clone and install locally
+git clone https://github.com/tosi-n/skill-gen.git && pip install -e ./skill-gen
+
+# Install browser (required for research)
+playwright install chromium
+
+# Set at least one LLM API key
+export ANTHROPIC_API_KEY=...   # or OPENAI_API_KEY or GOOGLE_API_KEY
+```
+
+Verify installation:
+
+```bash
+skill-gen --help
+```
 
 ## Skill Forge Pipeline
 
@@ -98,49 +120,27 @@ Compares existing content against fresh documentation, identifies outdated comma
 ## Quick Start
 
 ```bash
-# Install dependencies
-uv pip install -e ".[dev]"
-
 # Generate a skill from a blog post, tutorial, or doc page
 skill-gen from-url https://blog.example.com/intro-to-fastapi -o ./skills/fastapi/
 
-# Generate from multiple URLs (they get merged into one skill)
+# Generate from multiple URLs (merged into one skill)
 skill-gen from-url https://docs.tool.dev/guide https://docs.tool.dev/api -n my-tool -o ./skills/my-tool/
 
 # Generate from a GitHub README
 skill-gen from-url https://github.com/org/repo --template cli -o ./skills/repo/
 
-# Research a topic broadly and generate a skill
-python scripts/forge.py --topic "playwright" --output ./skills/playwright/
-
-# Generate from a specific starting URL (deep crawl mode)
-python scripts/forge.py --url "https://github.com/some/tool" --output ./skills/tool/
-
-# Evolve an existing skill with fresh research
-python scripts/evolve.py --skill ./skills/existing/SKILL.md --query "add authentication patterns"
-
-# Validate a skill
-python scripts/validate.py ./skills/my-skill/SKILL.md
-
-# Initialize a blank skill scaffold
-python scripts/init_skill.py --name "my-tool" --output ./skills/my-tool/
-```
-
-Using the CLI entry point:
-
-```bash
-# From URLs (blogs, tutorials, docs, READMEs)
-skill-gen from-url https://blog.example.com/post -o ./skills/my-skill/
-skill-gen from-url URL1 URL2 URL3 --name combined-skill -o ./skills/combined/
-
-# From topic (broad research)
-skill-gen forge --topic "fastapi" --output ./skills/fastapi/
+# Research a topic broadly (deep crawl)
+skill-gen forge --topic "playwright" --output ./skills/playwright/
 skill-gen forge --url "https://docs.pydantic.dev" --output ./skills/pydantic/
 
-# Evolve, validate, init
-skill-gen evolve --skill ./skills/fastapi/SKILL.md --query "add middleware examples"
-skill-gen validate ./skills/fastapi/SKILL.md
-skill-gen init --name "redis" --template api --output ./skills/redis/
+# Evolve an existing skill with fresh research
+skill-gen evolve --skill ./skills/existing/SKILL.md --query "add authentication patterns"
+
+# Validate a skill
+skill-gen validate ./skills/my-skill/SKILL.md
+
+# Initialize a blank skill scaffold
+skill-gen init --name "my-tool" --template api --output ./skills/my-tool/
 ```
 
 ### From-URL Workflow
