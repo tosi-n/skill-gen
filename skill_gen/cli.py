@@ -97,6 +97,86 @@ def cli():
 
 
 # ---------------------------------------------------------------------------
+# doctor
+# ---------------------------------------------------------------------------
+
+@cli.command()
+def doctor():
+    """Check that skill-gen and all prerequisites are installed correctly."""
+    import shutil
+
+    all_ok = True
+
+    # 1. Python version
+    py_ver = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    if sys.version_info >= (3, 11):
+        console.print(f"  [green]OK[/green]  Python {py_ver}")
+    else:
+        console.print(f"  [red]FAIL[/red]  Python {py_ver} (need >=3.11)")
+        all_ok = False
+
+    # 2. browser-use
+    try:
+        import browser_use  # noqa: F401
+        console.print(f"  [green]OK[/green]  browser-use installed")
+    except ImportError:
+        console.print("  [red]FAIL[/red]  browser-use not installed")
+        console.print("        [dim]pip install git+https://github.com/tosi-n/skill-gen.git[/dim]")
+        all_ok = False
+
+    # 3. playwright
+    try:
+        import playwright  # noqa: F401
+        console.print(f"  [green]OK[/green]  playwright installed")
+    except ImportError:
+        console.print("  [red]FAIL[/red]  playwright not installed")
+        console.print("        [dim]pip install playwright[/dim]")
+        all_ok = False
+
+    # 4. chromium binary
+    pw_bin = shutil.which("playwright")
+    if pw_bin:
+        import subprocess
+        result = subprocess.run(
+            ["playwright", "install", "--dry-run", "chromium"],
+            capture_output=True, text=True,
+        )
+        # If dry-run exits 0 or mentions "already installed", we're good
+        if result.returncode == 0 or "already" in result.stdout.lower():
+            console.print(f"  [green]OK[/green]  Chromium browser available")
+        else:
+            console.print("  [yellow]WARN[/yellow]  Chromium may not be installed")
+            console.print("        [dim]playwright install chromium[/dim]")
+            all_ok = False
+    else:
+        console.print("  [yellow]WARN[/yellow]  Cannot verify Chromium (playwright CLI not in PATH)")
+        console.print("        [dim]playwright install chromium[/dim]")
+
+    # 5. LLM API keys
+    import os
+    has_key = False
+    for key_name in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY"):
+        val = os.getenv(key_name, "")
+        if val:
+            console.print(f"  [green]OK[/green]  {key_name} is set")
+            has_key = True
+    if not has_key:
+        console.print("  [red]FAIL[/red]  No LLM API key set")
+        console.print("        [dim]export ANTHROPIC_API_KEY=... (or OPENAI_API_KEY or GOOGLE_API_KEY)[/dim]")
+        all_ok = False
+
+    # 6. skill-gen itself
+    console.print(f"  [green]OK[/green]  skill-gen CLI working")
+
+    console.print()
+    if all_ok:
+        console.print("[bold green]All checks passed. skill-gen is ready.[/bold green]")
+    else:
+        console.print("[bold yellow]Some checks failed. Fix the issues above, then re-run: skill-gen doctor[/bold yellow]")
+        raise SystemExit(1)
+
+
+# ---------------------------------------------------------------------------
 # forge
 # ---------------------------------------------------------------------------
 

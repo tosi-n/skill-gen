@@ -8,27 +8,30 @@ allowed-tools: Bash(skill-gen:*), Bash(python:*), Bash(uv:*), Bash(pip:*), Bash(
 
 Autonomous skill generator that crawls the web using browser-use, extracts structured knowledge about tools and libraries, and synthesizes production-ready Claude Code skills.
 
-## Installation
+## Prerequisites
+
+Before using this skill, skill-gen must be installed and configured. Run diagnostics to verify:
 
 ```bash
-# Install via pip (from GitHub)
+skill-gen doctor
+```
+
+If `skill-gen` is not found, install it:
+
+```bash
 pip install git+https://github.com/tosi-n/skill-gen.git
-
-# Or clone and install locally
-git clone https://github.com/tosi-n/skill-gen.git && pip install -e ./skill-gen
-
-# Install browser (required for research)
 playwright install chromium
-
-# Set at least one LLM API key
-export ANTHROPIC_API_KEY=...   # or OPENAI_API_KEY or GOOGLE_API_KEY
 ```
 
-Verify installation:
+At least one LLM API key must be set for the research agent:
 
 ```bash
-skill-gen --help
+export ANTHROPIC_API_KEY=...   # recommended
+# or: export OPENAI_API_KEY=...
+# or: export GOOGLE_API_KEY=...
 ```
+
+Run `skill-gen doctor` again to confirm all checks pass before proceeding.
 
 ## Skill Forge Pipeline
 
