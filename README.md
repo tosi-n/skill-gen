@@ -1,8 +1,8 @@
 # skill-gen
 
-AI-powered skill generator that uses [browser-use](https://github.com/browser-use/browser-use) to research tools, libraries, and APIs from the web, then synthesizes production-ready skills for coding agents.
+Skill generator for coding agents. Uses [browser-use](https://github.com/browser-use/browser-use) to browse the web — documentation, blogs, GitHub repos, tutorials — and generate production-ready SKILL.md files.
 
-Point it at a URL — a blog post, a GitHub repo, documentation, a tutorial — and it browses the page with a real browser, extracts structured knowledge, and generates a complete SKILL.md.
+When installed as a skill, the coding agent drives browser-use CLI directly. The agent is the intelligence — no separate LLM API key needed.
 
 ## Install
 
@@ -11,122 +11,81 @@ pip install git+https://github.com/tosi-n/skill-gen.git
 playwright install chromium
 ```
 
-Or install as a skill for your coding agent:
+Install as a skill for your coding agent:
 
 ```bash
 npx skills add tosi-n/skill-gen
 ```
 
-Set at least one LLM API key:
-
-```bash
-export ANTHROPIC_API_KEY=...   # recommended
-# or: export OPENAI_API_KEY=...
-# or: export GOOGLE_API_KEY=...
-```
-
-Verify everything works:
+Verify:
 
 ```bash
 skill-gen doctor
 ```
 
-## Usage
-
-### Generate a skill from a URL
-
-```bash
-# From a blog post
-skill-gen from-url https://blog.example.com/intro-to-fastapi -o ./skills/fastapi/
-
-# From a GitHub README
-skill-gen from-url https://github.com/psf/requests -o ./skills/requests/
-
-# From multiple pages (merged into one skill)
-skill-gen from-url https://docs.tool.dev/guide https://docs.tool.dev/api \
-  --name my-tool -o ./skills/my-tool/
-```
-
-### Research a topic broadly
-
-```bash
-skill-gen forge --topic "playwright" -o ./skills/playwright/
-skill-gen forge --url "https://docs.pydantic.dev" -o ./skills/pydantic/
-```
-
-### Other commands
-
-```bash
-skill-gen init --name redis --template api -o ./skills/redis/   # scaffold
-skill-gen validate ./skills/redis/SKILL.md                      # validate
-skill-gen evolve --skill ./SKILL.md --query "add auth patterns" # improve
-skill-gen research --topic "fastapi" --output findings.json     # research only
-```
-
 ## How it works
 
-1. **Discovery** — Takes a topic or URL, uses browser-use to locate documentation, READMEs, and API references
-2. **Extraction** — An LLM-powered browser agent reads each page, scrolling through content and extracting code snippets, installation commands, API methods, configuration options, and tutorial steps
-3. **Synthesis** — Transforms extracted knowledge into a SKILL.md with proper YAML frontmatter, organized sections, and code examples
-4. **Validation** — Checks the generated skill against the schema (frontmatter fields, line limits, code block annotations)
-5. **Evolution** — Can re-research to update existing skills with new information
+The coding agent reads the SKILL.md instructions and uses browser-use CLI to:
 
-The research engine uses [browser-use](https://github.com/browser-use/browser-use) with 9 custom extraction tools that the LLM agent calls as it browses — capturing code examples, commands, install instructions, article content, tutorial steps, and key concepts in structured form.
+1. **Open** a URL — `browser-use open https://docs.example.com`
+2. **Read** the page — `browser-use get text` / `browser-use state`
+3. **Navigate** — click links, scroll, follow docs across pages
+4. **Extract** — the agent reads the content and identifies install commands, API methods, code examples, config options, and workflows
+5. **Write** — generates a SKILL.md with proper frontmatter, organized sections, and code examples
+6. **Validate** — `skill-gen validate ./skills/my-tool/SKILL.md`
 
-## Templates
+No LLM API key required. The coding agent already is the LLM.
 
-| Template | Use case |
-|---|---|
-| `basic` | Simple CLI tools and utilities |
-| `browser` | Browser automation (pre-wired for browser-use) |
-| `api` | API integrations with auth, endpoints, error handling |
-| `cli` | CLI tool wrappers with command reference |
-| `composite` | Multi-tool skills combining capabilities |
+## Usage
+
+Once the skill is installed, ask your coding agent:
+
+- "Generate a skill from https://blog.example.com/intro-to-fastapi"
+- "Create a skill for playwright from their docs"
+- "Make a skill from this GitHub repo"
+- "Turn this tutorial into a skill"
+
+The agent will browse the URL(s), extract the content, and write a complete skill.
+
+### Scaffolding and validation
 
 ```bash
-skill-gen init --name my-tool --template cli -o ./skills/my-tool/
+skill-gen init --name redis --template api -o ./skills/redis/
+skill-gen init --name docker --template cli -o ./skills/docker/
+skill-gen validate ./skills/redis/SKILL.md
 ```
 
-## Configuration
+Templates: `basic`, `browser`, `api`, `cli`, `composite`.
 
-### Environment variables
+### Standalone mode (optional)
 
-| Variable | Description |
-|---|---|
-| `ANTHROPIC_API_KEY` | Claude API key (recommended) |
-| `OPENAI_API_KEY` | OpenAI API key (alternative) |
-| `GOOGLE_API_KEY` | Gemini API key (alternative) |
-| `SKILL_GEN_LLM` | Default LLM: `claude`, `gemini`, or `openai` |
-| `SKILL_GEN_MAX_DEPTH` | Max crawl depth (default: 3) |
-| `SKILL_GEN_MAX_PAGES` | Max pages per session (default: 10) |
-| `SKILL_GEN_HEADED` | Show browser window (`true`/`false`) |
-
-### LLM selection
+For batch/automated usage outside a coding agent, the Python package also provides commands that use browser-use's agent mode with an LLM:
 
 ```bash
-skill-gen forge --topic "redis" --llm claude -o ./skills/redis/
-skill-gen forge --topic "redis" --llm gemini -o ./skills/redis/
-skill-gen forge --topic "redis" --llm openai -o ./skills/redis/
+export ANTHROPIC_API_KEY=...  # or OPENAI_API_KEY / GOOGLE_API_KEY
+skill-gen forge --topic "fastapi" -o ./skills/fastapi/
+skill-gen from-url https://docs.pydantic.dev -o ./skills/pydantic/
+skill-gen evolve --skill ./SKILL.md --query "add auth patterns"
 ```
 
 ## Project structure
 
 ```
 skill-gen/
-  SKILL.md                  # skill (installed via npx skills add)
+  SKILL.md                  # Skill instructions (installed via npx skills add)
   skill_gen/
-    cli.py                  # CLI: forge, from-url, init, validate, evolve, research, doctor
+    cli.py                  # CLI: doctor, init, validate, forge, from-url, evolve
     core/
       generator.py          # Jinja2 template rendering
-      researcher.py         # browser-use research agent
+      researcher.py         # browser-use agent for standalone mode
       validator.py          # SKILL.md structure validation
       templates.py          # 5 built-in templates
     browser/
-      session.py            # Browser lifecycle management
-      tools.py              # 9 custom extraction tools
+      session.py            # Browser session management
+      tools.py              # Custom extraction tools
     utils/
-      markdown.py           # Markdown generation helpers
-  scripts/                  # Standalone scripts (forge, from_url, validate, etc.)
+      markdown.py           # Markdown helpers
+  scripts/                  # Standalone scripts
   assets/templates/         # Jinja2 skill templates
 ```
 

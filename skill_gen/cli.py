@@ -152,18 +152,13 @@ def doctor():
         console.print("  [yellow]WARN[/yellow]  Cannot verify Chromium (playwright CLI not in PATH)")
         console.print("        [dim]playwright install chromium[/dim]")
 
-    # 5. LLM API keys
-    import os
-    has_key = False
-    for key_name in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY"):
-        val = os.getenv(key_name, "")
-        if val:
-            console.print(f"  [green]OK[/green]  {key_name} is set")
-            has_key = True
-    if not has_key:
-        console.print("  [red]FAIL[/red]  No LLM API key set")
-        console.print("        [dim]export ANTHROPIC_API_KEY=... (or OPENAI_API_KEY or GOOGLE_API_KEY)[/dim]")
-        all_ok = False
+    # 5. browser-use CLI
+    bu_bin = shutil.which("browser-use")
+    if bu_bin:
+        console.print(f"  [green]OK[/green]  browser-use CLI available")
+    else:
+        console.print("  [yellow]WARN[/yellow]  browser-use CLI not in PATH")
+        console.print("        [dim]pip install git+https://github.com/tosi-n/skill-gen.git[/dim]")
 
     # 6. skill-gen itself
     console.print(f"  [green]OK[/green]  skill-gen CLI working")
