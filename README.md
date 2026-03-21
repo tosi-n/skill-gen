@@ -1,20 +1,22 @@
 # skill-gen
 
-Skill generator for coding agents. Uses [browser-use](https://github.com/browser-use/browser-use) to browse the web — documentation, blogs, GitHub repos, tutorials — and generate production-ready SKILL.md files.
+Skill generator for coding agents. Browse the web, read blogs, or clone repositories — and generate production-ready SKILL.md files from any source.
 
-When installed as a skill, the coding agent drives browser-use CLI directly. The agent is the intelligence — no separate LLM API key needed.
+When installed as a skill, the coding agent is the intelligence. It uses [browser-use](https://github.com/browser-use/browser-use) for web pages and `git` for repositories. No separate LLM API key needed.
 
 ## Install
-
-```bash
-pip install git+https://github.com/tosi-n/skill-gen.git
-playwright install chromium
-```
 
 Install as a skill for your coding agent:
 
 ```bash
 npx skills add tosi-n/skill-gen
+```
+
+For validation, scaffolding, and standalone CLI commands:
+
+```bash
+pip install git+https://github.com/tosi-n/skill-gen.git
+playwright install chromium
 ```
 
 Verify:
@@ -25,14 +27,26 @@ skill-gen doctor
 
 ## How it works
 
-The coding agent reads the SKILL.md instructions and uses browser-use CLI to:
+The agent reads the SKILL.md instructions and picks the right approach based on the source:
+
+### From web pages (docs, blogs, tutorials)
 
 1. **Open** a URL — `browser-use open https://docs.example.com`
 2. **Read** the page — `browser-use get text` / `browser-use state`
 3. **Navigate** — click links, scroll, follow docs across pages
-4. **Extract** — the agent reads the content and identifies install commands, API methods, code examples, config options, and workflows
-5. **Write** — generates a SKILL.md with proper frontmatter, organized sections, and code examples
+4. **Extract** — identifies install commands, API methods, code examples, config options, and workflows
+5. **Write** — generates a SKILL.md with proper frontmatter and organized sections
 6. **Validate** — `skill-gen validate ./skills/my-tool/SKILL.md`
+
+### From repositories
+
+1. **Clone** — `git clone https://github.com/org/repo /tmp/skill-gen-repo`
+2. **Explore** — file tree, language mix, project structure
+3. **Detect type** — library, CLI tool, framework, data collection, or application
+4. **Read key files** — README, build config, source entry points, examples, tests, docs
+5. **Pick template** — auto-selects `basic`, `api`, `cli`, `browser`, or `composite` based on repo type
+6. **Synthesize** — writes a SKILL.md from the combined findings
+7. **Cleanup** — `rm -rf /tmp/skill-gen-repo`
 
 No LLM API key required. The coding agent already is the LLM.
 
@@ -42,10 +56,11 @@ Once the skill is installed, ask your coding agent:
 
 - "Generate a skill from https://blog.example.com/intro-to-fastapi"
 - "Create a skill for playwright from their docs"
-- "Make a skill from this GitHub repo"
+- "Build a skill from https://github.com/zml/zml"
+- "Make a skill from this repo https://github.com/org/tool"
 - "Turn this tutorial into a skill"
 
-The agent will browse the URL(s), extract the content, and write a complete skill.
+The agent picks the right approach — browser-use for web pages, git clone for repositories — and writes a complete skill.
 
 ### Scaffolding and validation
 
